@@ -178,7 +178,7 @@ html {
     padding: 15px;
     z-index: 1000;
     font-family: 'SF Mono', Monaco, 'Courier New', monospace;
-    min-width: 180px;
+    min-width: 200px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     display: none; /* Hidden by default, shown when tracking starts */
@@ -192,7 +192,7 @@ html {
     display: flex;
     justify-content: space-between;
     margin: 8px 0;
-    font-size: 14px;
+    font-size: 13px;
     color: #FFFFFF;
 }
 
@@ -205,5 +205,16 @@ html {
     color: #00FF88;
     font-weight: 600;
     text-align: right;
-    min-width: 80px;
+    min-width: 90px;
+}
+
+/* Location info section */
+.location-info {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.location-info .orientation-value span:last-child {
+    color: #88CCFF;
 }

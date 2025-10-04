@@ -16,9 +16,9 @@
     <!-- Permission Request Button (hidden after permission granted) -->
     <div id="permission-overlay" class="overlay">
         <button id="request-permission" class="permission-btn">
-            Enable Motion Sensors to Start
+            Enable Location & Motion Sensors
         </button>
-        <p class="permission-info">This app needs access to your device's motion sensors to track the North Star</p>
+        <p class="permission-info">This app needs access to your location and device motion sensors to accurately position the North Star based on your geographic location</p>
     </div>
 
     <!-- Orientation Values Overlay -->
@@ -70,6 +70,21 @@
                       material="color: #FFFFFF; opacity: 0.3; shader: flat"></a-entity>
             <a-entity geometry="primitive: sphere; radius: 0.3"
                       material="color: #FFFFFF; opacity: 0.1; shader: flat"></a-entity>
+        </a-entity>
+
+        <!-- Cardinal direction markers for reference -->
+        <a-entity id="cardinal-markers">
+            <!-- North marker (red) - where Polaris should be -->
+            <a-text value="N" position="0 0 -10" color="#FF0000" align="center" width="10"></a-text>
+
+            <!-- South marker (green) -->
+            <a-text value="S" position="0 0 10" color="#00FF00" align="center" width="10"></a-text>
+
+            <!-- East marker (blue) -->
+            <a-text value="E" position="10 0 0" color="#0088FF" align="center" width="10"></a-text>
+
+            <!-- West marker (yellow) -->
+            <a-text value="W" position="-10 0 0" color="#FFFF00" align="center" width="10"></a-text>
         </a-entity>
 
         <!-- Optional: Add some reference stars for context -->
