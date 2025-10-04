@@ -15,6 +15,8 @@ class NorthStarViewer {
         this.pitchValue = document.getElementById('pitch-value');
         this.rollValue = document.getElementById('roll-value');
         this.compassValue = document.getElementById('compass-value');
+        this.calibrateBtn = document.getElementById('calibrate-btn');
+        this.calibrationStatus = document.getElementById('calibration-status');
 
         this.hasPermission = false;
         this.isIOS = this.checkIOS();
@@ -24,6 +26,10 @@ class NorthStarViewer {
         this.magneticDeclination = 0;
         this.trueHeading = null;
         this.magneticHeading = null;
+
+        // Calibration offset
+        this.calibrationOffset = 0;
+        this.isCalibrating = false;
 
         this.init();
     }
@@ -116,6 +122,9 @@ class NorthStarViewer {
 
         // Show orientation overlay
         this.orientationOverlay.classList.add('active');
+
+        // Setup calibration button
+        this.setupCalibration();
 
         // Enable device orientation tracking
         if (window.DeviceOrientationEvent) {
@@ -336,13 +345,69 @@ class NorthStarViewer {
 
     // Align camera rotation to account for true north
     alignCameraToTrueNorth() {
-        if (this.trueHeading !== null) {
-            // The camera rotation needs to be adjusted so that when facing true north,
-            // Polaris appears in the correct position
-            // This compensates for the difference between magnetic and true north
+        if (this.trueHeading !== null && !this.isCalibrating) {
+            // Apply calibration offset to align the scene with the real world
+            const cameraRig = document.getElementById('camera-rig');
+            if (cameraRig) {
+                // Rotate the entire camera rig to compensate for calibration offset
+                cameraRig.setAttribute('rotation', `0 ${this.calibrationOffset} 0`);
+            }
+        }
+    }
 
-            // Note: A-Frame's look-controls will handle the device orientation
-            // We just need to ensure our scene is aligned with true north
+    // Setup calibration button and functionality
+    setupCalibration() {
+        if (this.calibrateBtn) {
+            this.calibrateBtn.addEventListener('click', () => {
+                this.startCalibration();
+            });
+        }
+    }
+
+    // Start calibration process
+    startCalibration() {
+        this.isCalibrating = true;
+        this.calibrationStatus.textContent = 'Point device toward North and press again';
+        this.calibrationStatus.style.color = '#FFD700';
+        this.calibrateBtn.textContent = 'Confirm North';
+
+        // Change button behavior for confirmation
+        this.calibrateBtn.onclick = () => {
+            this.confirmCalibration();
+        };
+    }
+
+    // Confirm calibration when user is facing north
+    confirmCalibration() {
+        if (this.trueHeading !== null) {
+            // Calculate the offset needed to align the scene
+            // When user is facing north (0°), we want the north star to be straight ahead
+            this.calibrationOffset = -this.trueHeading;
+
+            // Apply the calibration
+            this.alignCameraToTrueNorth();
+
+            // Update status
+            this.calibrationStatus.textContent = 'Calibrated successfully!';
+            this.calibrationStatus.style.color = '#00FF88';
+
+            // Reset button
+            this.calibrateBtn.textContent = 'Recalibrate';
+            this.calibrateBtn.onclick = () => {
+                this.startCalibration();
+            };
+
+            this.isCalibrating = false;
+
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                this.calibrationStatus.textContent = '';
+            }, 3000);
+
+            console.log(`Calibration complete. Offset: ${this.calibrationOffset}°`);
+        } else {
+            this.calibrationStatus.textContent = 'No compass data available';
+            this.calibrationStatus.style.color = '#FF4444';
         }
     }
 

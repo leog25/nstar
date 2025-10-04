@@ -39,6 +39,10 @@
             <span class="label">Direction:</span>
             <span id="compass-value">--</span>
         </div>
+        <button id="calibrate-btn" class="calibrate-btn">
+            Calibrate Compass
+        </button>
+        <div id="calibration-status" class="calibration-status"></div>
     </div>
 
     <!-- A-Frame VR Scene -->
@@ -72,11 +76,8 @@
                       material="color: #FFFFFF; opacity: 0.1; shader: flat"></a-entity>
         </a-entity>
 
-        <!-- Cardinal direction markers for reference -->
+        <!-- Cardinal direction markers for reference (no North marker) -->
         <a-entity id="cardinal-markers">
-            <!-- North marker (red) - where Polaris should be -->
-            <a-text value="N" position="0 0 -10" color="#FF0000" align="center" width="10"></a-text>
-
             <!-- South marker (green) -->
             <a-text value="S" position="0 0 10" color="#00FF00" align="center" width="10"></a-text>
 

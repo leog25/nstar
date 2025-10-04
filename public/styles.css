@@ -218,3 +218,36 @@ html {
 .location-info .orientation-value span:last-child {
     color: #88CCFF;
 }
+
+/* Calibration Button */
+.calibrate-btn {
+    margin-top: 12px;
+    width: 100%;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.calibrate-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.calibrate-btn:active {
+    transform: translateY(0);
+}
+
+/* Calibration Status */
+.calibration-status {
+    margin-top: 8px;
+    font-size: 12px;
+    text-align: center;
+    min-height: 18px;
+    font-weight: 500;
+}
