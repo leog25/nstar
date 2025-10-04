@@ -92,13 +92,14 @@ class NorthStarViewer {
         const distance = 30; // Distance from origin in 3D space
 
         // Calculate where north is relative to current device orientation
-        // Compass heading: 0° = North, 90° = East, 180° = South, 270° = West
+        // After compass fix: 0° = North, 90° = East, 180° = South, 270° = West
         // We need to place the star so it appears in the north direction
         // If facing North (0°), star should be straight ahead (azimuth = 0°)
         // If facing East (90°), star should be to the left (azimuth = -90°)
         // If facing South (180°), star should be behind (azimuth = 180°)
         // If facing West (270°), star should be to the right (azimuth = 90°)
-        const azimuth = -this.trueHeading; // Negate to get correct positioning
+        // Since we inverted the compass, we now use positive heading
+        const azimuth = this.trueHeading; // Use positive after compass inversion fix
 
         // Convert to radians
         const elevRad = (this.polarisElevation * Math.PI) / 180;
@@ -176,7 +177,8 @@ class NorthStarViewer {
 
         if (event.alpha !== null && event.beta !== null && event.gamma !== null) {
             // Get magnetic heading from device
-            this.magneticHeading = event.alpha;
+            // Fix: Invert the compass reading for correct East/West
+            this.magneticHeading = 360 - event.alpha;
 
             // Calculate true heading using magnetic declination
             this.trueHeading = (this.magneticHeading + this.magneticDeclination + 360) % 360;
@@ -196,7 +198,8 @@ class NorthStarViewer {
             // Use webkitCompassHeading for iOS if available (more accurate)
             if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
                 // webkitCompassHeading gives us magnetic north
-                this.magneticHeading = 360 - event.webkitCompassHeading;
+                // Note: webkitCompassHeading is already in the correct orientation
+                this.magneticHeading = event.webkitCompassHeading;
                 this.trueHeading = (this.magneticHeading + this.magneticDeclination + 360) % 360;
 
                 // Update display with more accurate iOS compass data
@@ -218,6 +221,9 @@ class NorthStarViewer {
     }
 
     getCompassDirection(heading) {
+        // Fix: When turning left from North, heading increases (0 -> 270 -> 180 -> 90 -> 0)
+        // When turning right from North, heading decreases (0 -> 90 -> 180 -> 270 -> 0)
+        // Standard compass: N=0°, E=90°, S=180°, W=270°
         const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
         const index = Math.round(heading / 45) % 8;
         return directions[index];
