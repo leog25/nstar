@@ -154,10 +154,10 @@ class NorthStarApp {
     }
 
     updateInfo() {
-        const compass = Math.round(this.orientation.alpha);
+        const roll = Math.round(this.orientation.gamma);
         const elevation = Math.round(this.orientation.beta);
 
-        document.getElementById('compass').textContent = `Compass: ${compass}°`;
+        document.getElementById('compass').textContent = `Roll: ${roll}°`;
         document.getElementById('elevation').textContent = `Elevation: ${elevation}°`;
     }
 
@@ -218,16 +218,10 @@ class NorthStarApp {
         const polarisElevation = Math.abs(this.latitude); // degrees above horizon
 
         // Get device orientation
-        const deviceHeading = this.smoothedOrientation.alpha; // Compass heading (0-360)
-        const phoneTilt = this.smoothedOrientation.beta; // Front-to-back tilt
-        const phoneRoll = this.smoothedOrientation.gamma; // Left-to-right roll
+        const phoneTilt = this.smoothedOrientation.beta; // Front-to-back tilt (-180 to 180)
+        const phoneRoll = this.smoothedOrientation.gamma; // Left-to-right roll (-90 to 90)
 
-        // Calculate bearing to north
-        // alpha=0 means the device is pointing north
-        // We need to calculate how many degrees we are off from north
-        const bearingToNorth = (360 - deviceHeading) % 360;
-
-        // Calculate the apparent position on screen
+        // Calculate the apparent position on screen using tilt-based tracking
         // When phone is level (beta=0), looking at horizon
         // When tilted up (negative beta), see higher in sky
         // When tilted down (positive beta), see lower in sky
@@ -235,6 +229,13 @@ class NorthStarApp {
         // For elevation: star is at latitude degrees above horizon
         // Phone tilt determines what elevation we're looking at
         const elevationDiff = polarisElevation - phoneTilt;
+
+        // For horizontal: use gamma (left-right tilt) similar to vertical tracking
+        // gamma=0 means device is level horizontally (star in center)
+        // Positive gamma = device tilted right (star moves left)
+        // Negative gamma = device tilted left (star moves right)
+        // Assume star is at 0° horizontal when device is level
+        const horizontalDiff = -phoneRoll; // Negative because tilting right should move star left
 
         // Convert to screen coordinates
         // Center of screen is straight ahead
@@ -249,24 +250,15 @@ class NorthStarApp {
         const pixelsPerDegreeH = this.canvas.width / fovHorizontal;
         const pixelsPerDegreeV = this.canvas.height / fovVertical;
 
-        // X position based on compass bearing to north
-        // When bearingToNorth is 0, star is in center horizontally
-        // Positive bearing = star to the right, negative = star to the left
-        let angleDiff = bearingToNorth;
-
-        // Normalize angle difference to -180 to 180 range
-        if (angleDiff > 180) {
-            angleDiff -= 360;
-        }
-
-        // Convert angle to screen position
-        const xOffset = angleDiff * pixelsPerDegreeH;
+        // X position based on left-right tilt
+        const xOffset = horizontalDiff * pixelsPerDegreeH;
 
         // Y position based on elevation difference
         const yOffset = -elevationDiff * pixelsPerDegreeV;
 
         // Check if star is visible (within reasonable bounds)
-        const visible = Math.abs(angleDiff) < fovHorizontal &&
+        // gamma ranges from -90 to 90, so check if within FOV
+        const visible = Math.abs(horizontalDiff) < fovHorizontal/2 &&
                        elevationDiff > -fovVertical/2 &&
                        elevationDiff < fovVertical/2;
 
