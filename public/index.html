@@ -6,10 +6,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>N*</title>
 
-    <!-- A-Frame for WebVR -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 
-    <!-- Billboard component for star orientation -->
     <script>
         AFRAME.registerComponent('billboard', {
             init: function() {
@@ -24,31 +22,26 @@
             }
         });
 
-        // Morse code pulsating component
         AFRAME.registerComponent('morse-pulse', {
             schema: {
                 text: {type: 'string', default: 'NORTH STAR'}
             },
             init: function() {
-                // Morse code mapping
                 this.morseCode = {
                     'N': '-.', 'O': '---', 'R': '.-.', 'T': '-', 'H': '....',
                     'S': '...', 'A': '.-', ' ': ' '
                 };
                 
-                // Timing (in milliseconds)
                 this.dotDuration = 400;
                 this.dashDuration = 1200;
-                this.gapDuration = 300; // between dots/dashes
-                this.letterGapDuration = 800; // between letters
-                this.wordGapDuration = 1800; // between words
+                this.gapDuration = 300;
+                this.letterGapDuration = 800;
+                this.wordGapDuration = 1800;
                 
-                // Convert text to morse sequence
                 this.sequence = this.textToMorseSequence(this.data.text);
                 this.currentIndex = 0;
                 this.currentTime = 0;
                 
-                // Get material
                 this.material = this.el.getAttribute('material');
             },
             
@@ -69,24 +62,20 @@
                                 } else if (symbol === '-') {
                                     sequence.push({type: 'dash', duration: this.dashDuration});
                                 }
-                                // Gap between symbols in same letter
                                 if (j < morse.length - 1) {
                                     sequence.push({type: 'gap', duration: this.gapDuration});
                                 }
                             }
-                            // Gap between letters
                             if (i < word.length - 1) {
                                 sequence.push({type: 'gap', duration: this.letterGapDuration});
                             }
                         }
                     }
-                    // Gap between words
                     if (w < words.length - 1) {
                         sequence.push({type: 'gap', duration: this.wordGapDuration});
                     }
                 }
                 
-                // Add pause before repeating
                 sequence.push({type: 'gap', duration: 2000});
                 
                 return sequence;
@@ -108,26 +97,20 @@
                     current = this.sequence[this.currentIndex];
                 }
                 
-                // Calculate progress through current symbol (0 to 1)
                 var progress = this.currentTime / current.duration;
                 
-                // Smooth fade in and out using sine wave
                 var fadeProgress;
                 if (current.type === 'dot' || current.type === 'dash') {
-                    // Fade in during first half, fade out during second half
-                    fadeProgress = Math.sin(progress * Math.PI); // Smooth 0 to 1 to 0
+                    fadeProgress = Math.sin(progress * Math.PI);
                     
-                    // Apply easing for even gentler transition
-                    fadeProgress = fadeProgress * fadeProgress; // Quadratic easing
+                    fadeProgress = fadeProgress * fadeProgress;
                     
-                    // Map to gentler opacity range (0.05 to 0.35)
                     var opacity = 0.1 + (fadeProgress * 0.3);
                     var scale = 1.0 + (fadeProgress * 0.1);
                     
                     this.el.setAttribute('material', 'opacity', opacity);
                     this.el.setAttribute('scale', scale + ' ' + scale + ' ' + scale);
                 } else {
-                    // Gap - stay very dim
                     this.el.setAttribute('material', 'opacity', 0.05);
                     this.el.setAttribute('scale', '1 1 1');
                 }
@@ -135,14 +118,11 @@
         });
     </script>
 
-    <!-- Custom styles -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <!-- A-Frame VR Scene -->
     <a-scene id="vr-scene" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" background="color: #000000">
-        <!-- Camera with look controls for device orientation -->
         <a-entity id="camera-rig" position="0 0 0">
             <a-camera
                 id="camera"
@@ -152,37 +132,24 @@
             </a-camera>
         </a-entity>
 
-        <!-- Sky (black background) -->
         <a-sky color="#000000"></a-sky>
 
-        <!-- North Star (Polaris) -->
-        <!-- Positioned at celestial north pole -->
-        <!-- In A-Frame: Y is up, -Z is forward, X is right -->
-        <!-- Polaris at ~89.3° elevation from north -->
         <a-entity id="north-star"
                   position="0 20 -2"
                   light="type: point; intensity: 0.5; distance: 50; color: #FFFFFF">
-            <!-- Star shape container, always faces camera -->
             <a-entity billboard>
-                <!-- Star shape made with crossed cylinders -->
-                <!-- Vertical beam (appears vertical when viewed) -->
                 <a-cylinder radius="0.015" height="0.4" 
                             material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 2; shader: flat"></a-cylinder>
-                <!-- Horizontal beam (appears horizontal when viewed) -->
                 <a-cylinder radius="0.015" height="0.4" rotation="0 0 90"
                             material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 2; shader: flat"></a-cylinder>
-                <!-- Diagonal beam 1 -->
                 <a-cylinder radius="0.015" height="0.32" rotation="0 0 45"
                             material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 2; shader: flat"></a-cylinder>
-                <!-- Diagonal beam 2 -->
                 <a-cylinder radius="0.015" height="0.32" rotation="0 0 -45"
                             material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 2; shader: flat"></a-cylinder>
-                <!-- Center sphere -->
                 <a-sphere radius="0.04"
                           material="color: #FFFFFF; emissive: #FFFFFF; emissiveIntensity: 2; shader: flat"></a-sphere>
             </a-entity>
             
-            <!-- Add glow effect -->
             <a-entity geometry="primitive: sphere; radius: 0.2"
                       material="color: #FFFFFF; opacity: 0.3; shader: flat"></a-entity>
             <a-entity geometry="primitive: sphere; radius: 0.3"
@@ -190,21 +157,15 @@
                       morse-pulse="text: NORTH STAR"></a-entity>
         </a-entity>
 
-        <!-- Cardinal direction markers for reference (no North marker) -->
         <a-entity id="cardinal-markers">
-            <!-- South marker (green) -->
             <a-text value="S" position="0 0 10" color="#00FF00" align="center" width="10"></a-text>
 
-            <!-- East marker (blue) - East is to the right when facing north -->
             <a-text value="E" position="10 0 0" color="#0088FF" align="center" width="10"></a-text>
 
-            <!-- West marker (yellow) - West is to the left when facing north -->
             <a-text value="W" position="-10 0 0" color="#FFFF00" align="center" width="10"></a-text>
         </a-entity>
 
-        <!-- Optional: Add some reference stars for context -->
         <a-entity id="reference-stars">
-            <!-- A few dimmer stars for spatial reference -->
             <a-sphere position="5 10 -15" radius="0.02" color="#CCCCCC" opacity="0.7"></a-sphere>
             <a-sphere position="-8 5 -10" radius="0.02" color="#CCCCCC" opacity="0.7"></a-sphere>
             <a-sphere position="10 -5 -20" radius="0.02" color="#CCCCCC" opacity="0.7"></a-sphere>
@@ -212,7 +173,6 @@
             <a-sphere position="3 -10 -12" radius="0.02" color="#CCCCCC" opacity="0.7"></a-sphere>
         </a-entity>
 
-        <!-- Optional: Add a subtle grid for orientation (can be toggled) -->
         <a-entity id="orientation-grid" visible="true">
             <a-entity geometry="primitive: ring; radiusInner: 9.9; radiusOuter: 10"
                       material="color: #333333; opacity: 0.3"
@@ -229,7 +189,6 @@
         </a-entity>
     </a-scene>
 
-    <!-- Load our app logic -->
     <script src="app.js"></script>
 </body>
 </html>
