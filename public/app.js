@@ -20,7 +20,7 @@ class NorthStarApp {
 
         // Smoothing filter
         this.smoothedOrientation = { ...this.orientation };
-        this.smoothingFactor = 0.1;
+        this.smoothingFactor = 0.3; // Increased for more responsive tracking
 
         // North Star position (Polaris)
         // Polaris is at approximately 89.26° declination (nearly at celestial north pole)
@@ -223,8 +223,8 @@ class NorthStarApp {
 
         // Calculate bearing to north
         // alpha=0 means the device is pointing north
-        // We need to calculate how many degrees we are off from north
-        const bearingToNorth = (360 - deviceHeading) % 360;
+        // Negative values mean north is to the left, positive to the right
+        const bearingToNorth = -deviceHeading;
 
         // Calculate the apparent position on screen
         // When phone is level (beta=0), looking at horizon
@@ -254,8 +254,11 @@ class NorthStarApp {
         let angleDiff = bearingToNorth;
 
         // Normalize angle difference to -180 to 180 range
-        if (angleDiff > 180) {
+        while (angleDiff > 180) {
             angleDiff -= 360;
+        }
+        while (angleDiff < -180) {
+            angleDiff += 360;
         }
 
         // Convert angle to screen position
