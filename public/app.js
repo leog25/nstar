@@ -154,7 +154,7 @@ class NorthStarViewer {
         console.log('North Star VR Viewer initialized successfully');
 
         // Optional: Show instructions
-        this.showInstructions();
+        // this.showInstructions();
     }
 
     handleOrientation(event) {
