@@ -1,0 +1,24 @@
+{
+  "name": "northstar-vr-viewer",
+  "version": "1.0.0",
+  "description": "VR iOS website that shows the North Star using device motion sensors",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "vr",
+    "webvr",
+    "northstar",
+    "polaris",
+    "aframe",
+    "ios",
+    "device-orientation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
