@@ -9,6 +9,13 @@ class NorthStarViewer {
         this.camera = document.getElementById('camera');
         this.northStar = document.getElementById('north-star');
 
+        // Orientation overlay elements
+        this.orientationOverlay = document.getElementById('orientation-overlay');
+        this.headingValue = document.getElementById('heading-value');
+        this.pitchValue = document.getElementById('pitch-value');
+        this.rollValue = document.getElementById('roll-value');
+        this.compassValue = document.getElementById('compass-value');
+
         this.hasPermission = false;
         this.isIOS = this.checkIOS();
 
@@ -79,6 +86,9 @@ class NorthStarViewer {
         // Hide permission overlay
         this.permissionOverlay.style.display = 'none';
 
+        // Show orientation overlay
+        this.orientationOverlay.classList.add('active');
+
         // Enable device orientation tracking
         if (window.DeviceOrientationEvent) {
             window.addEventListener('deviceorientation', (event) => {
@@ -109,12 +119,28 @@ class NorthStarViewer {
         // But we can add custom adjustments if needed
 
         if (event.alpha !== null && event.beta !== null && event.gamma !== null) {
-            // The look-controls component in A-Frame handles the camera rotation
-            // We can add additional logic here if needed
+            // Update orientation display values
+            const heading = Math.round(event.alpha);
+            const pitch = Math.round(event.beta);
+            const roll = Math.round(event.gamma);
+
+            this.headingValue.textContent = `${heading}°`;
+            this.pitchValue.textContent = `${pitch}°`;
+            this.rollValue.textContent = `${roll}°`;
+
+            // Calculate compass direction
+            const compass = this.getCompassDirection(heading);
+            this.compassValue.textContent = compass;
 
             // Optional: Adjust for magnetic declination based on location
             // This would require geolocation API and declination calculation
         }
+    }
+
+    getCompassDirection(heading) {
+        const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        const index = Math.round(heading / 45) % 8;
+        return directions[index];
     }
 
     handleMotion(event) {
@@ -128,6 +154,11 @@ class NorthStarViewer {
     }
 
     setupKeyboardControls() {
+        // Show overlay for desktop too
+        if (!this.isIOS) {
+            this.orientationOverlay.classList.add('active');
+        }
+
         // For desktop testing - arrow keys to look around
         document.addEventListener('keydown', (event) => {
             if (!this.isIOS) {
@@ -154,6 +185,13 @@ class NorthStarViewer {
                 }
 
                 camera.setAttribute('rotation', rotation);
+
+                // Update orientation values display for desktop
+                this.headingValue.textContent = `${Math.round(rotation.y % 360)}°`;
+                this.pitchValue.textContent = `${Math.round(rotation.x)}°`;
+                this.rollValue.textContent = `0°`;
+                const compass = this.getCompassDirection(rotation.y % 360);
+                this.compassValue.textContent = compass;
             }
         });
     }
@@ -163,7 +201,6 @@ class NorthStarViewer {
         const instructions = document.createElement('div');
         instructions.className = 'instructions';
         instructions.innerHTML = `
-            <p>Move your device to look around</p>
             <p>The bright star is Polaris (North Star)</p>
         `;
         document.body.appendChild(instructions);

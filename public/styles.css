@@ -104,23 +104,6 @@ a-scene {
     }
 }
 
-/* Landscape orientation reminder */
-@media only screen and (orientation: portrait) and (max-width: 800px) {
-    body::after {
-        content: "Rotate device for better experience";
-        position: fixed;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 8px 15px;
-        border-radius: 5px;
-        font-size: 12px;
-        z-index: 100;
-        animation: pulse 2s infinite;
-    }
-}
 
 @keyframes pulse {
     0%, 100% {
@@ -182,4 +165,45 @@ html {
 
 .debug-panel.active {
     display: block;
+}
+
+/* Orientation Values Overlay */
+.orientation-overlay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 15px;
+    z-index: 1000;
+    font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+    min-width: 180px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none; /* Hidden by default, shown when tracking starts */
+}
+
+.orientation-overlay.active {
+    display: block;
+}
+
+.orientation-value {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 14px;
+    color: #FFFFFF;
+}
+
+.orientation-value .label {
+    color: #888888;
+    font-weight: 500;
+}
+
+.orientation-value span:last-child {
+    color: #00FF88;
+    font-weight: 600;
+    text-align: right;
+    min-width: 80px;
 }

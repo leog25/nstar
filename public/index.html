@@ -21,6 +21,26 @@
         <p class="permission-info">This app needs access to your device's motion sensors to track the North Star</p>
     </div>
 
+    <!-- Orientation Values Overlay -->
+    <div id="orientation-overlay" class="orientation-overlay">
+        <div class="orientation-value">
+            <span class="label">Heading:</span>
+            <span id="heading-value">--°</span>
+        </div>
+        <div class="orientation-value">
+            <span class="label">Pitch:</span>
+            <span id="pitch-value">--°</span>
+        </div>
+        <div class="orientation-value">
+            <span class="label">Roll:</span>
+            <span id="roll-value">--°</span>
+        </div>
+        <div class="orientation-value">
+            <span class="label">Direction:</span>
+            <span id="compass-value">--</span>
+        </div>
+    </div>
+
     <!-- A-Frame VR Scene -->
     <a-scene id="vr-scene" vr-mode-ui="enabled: true" background="color: #000000">
         <!-- Camera with look controls for device orientation -->
