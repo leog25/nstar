@@ -156,8 +156,9 @@ class NorthStarApp {
     updateInfo() {
         const compass = Math.round(this.orientation.alpha);
         const elevation = Math.round(this.orientation.beta);
+        const roll = Math.round(this.orientation.gamma);
 
-        document.getElementById('compass').textContent = `Compass: ${compass}°`;
+        document.getElementById('compass').textContent = `Compass: ${compass}° | Roll: ${roll}°`;
         document.getElementById('elevation').textContent = `Elevation: ${elevation}°`;
     }
 
@@ -220,11 +221,13 @@ class NorthStarApp {
         // Get device orientation
         const deviceHeading = this.smoothedOrientation.alpha; // Compass heading (0-360)
         const phoneTilt = this.smoothedOrientation.beta; // Front-to-back tilt (-180 to 180)
+        const phoneRoll = this.smoothedOrientation.gamma; // Left-to-right roll (-90 to 90)
 
-        // Calculate bearing to north
+        // Calculate bearing to north using both compass and tilt
         // alpha=0 means the device is pointing north
-        // Negative values mean north is to the left, positive to the right
+        // gamma adds additional horizontal offset from tilting
         const bearingToNorth = -deviceHeading;
+        const tiltOffset = phoneRoll; // Direct tilt contribution
 
         // Calculate the apparent position on screen
         // When phone is level (beta=0), looking at horizon
@@ -248,27 +251,30 @@ class NorthStarApp {
         const pixelsPerDegreeH = this.canvas.width / fovHorizontal;
         const pixelsPerDegreeV = this.canvas.height / fovVertical;
 
-        // X position based on compass bearing to north
-        // When bearingToNorth is 0, star is in center horizontally
-        // Positive bearing = star to the right, negative = star to the left
-        let angleDiff = bearingToNorth;
+        // X position based on compass bearing AND tilt
+        // Combines rotation (compass) and tilt (gamma) for full horizontal control
+        let compassAngle = bearingToNorth;
 
-        // Normalize angle difference to -180 to 180 range
-        while (angleDiff > 180) {
-            angleDiff -= 360;
+        // Normalize compass angle to -180 to 180 range
+        while (compassAngle > 180) {
+            compassAngle -= 360;
         }
-        while (angleDiff < -180) {
-            angleDiff += 360;
+        while (compassAngle < -180) {
+            compassAngle += 360;
         }
+
+        // Combine compass and tilt for total horizontal offset
+        // Compass provides primary positioning, tilt adds fine adjustment
+        const totalHorizontalAngle = compassAngle + tiltOffset;
 
         // Convert angle to screen position
-        const xOffset = angleDiff * pixelsPerDegreeH;
+        const xOffset = totalHorizontalAngle * pixelsPerDegreeH;
 
         // Y position based on elevation difference
         const yOffset = -elevationDiff * pixelsPerDegreeV;
 
         // Check if star is visible (within reasonable bounds)
-        const visible = Math.abs(angleDiff) < fovHorizontal &&
+        const visible = Math.abs(totalHorizontalAngle) < fovHorizontal &&
                        elevationDiff > -fovVertical/2 &&
                        elevationDiff < fovVertical/2;
 
