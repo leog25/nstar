@@ -23,7 +23,17 @@ class NorthStarViewer {
     }
 
     init() {
-        // Get user's location first
+        // Request permissions BEFORE A-Frame initializes to prevent A-Frame's dialog
+        if (this.isIOS && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // For iOS 13+, request permission immediately
+            // This happens before A-Frame tries to request it
+            this.requestIOSPermission();
+        } else {
+            // Non-iOS or older iOS versions - start directly
+            this.startTracking();
+        }
+
+        // Get user's location
         this.getUserLocation().then(() => {
             // Set up North Star position based on user's latitude
             this.updateNorthStarPosition();
@@ -33,16 +43,6 @@ class NorthStarViewer {
             this.userLocation = { latitude: 40, longitude: 0 };
             this.updateNorthStarPosition();
         });
-
-        // Start tracking immediately
-        // For iOS 13+, we'll request permission when needed
-        if (this.isIOS && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // Request permission directly for iOS 13+
-            this.requestIOSPermission();
-        } else {
-            // Non-iOS or older iOS versions - start directly
-            this.startTracking();
-        }
 
         // Add keyboard controls for desktop testing
         this.setupKeyboardControls();

@@ -141,12 +141,12 @@
 <body>
 
     <!-- A-Frame VR Scene -->
-    <a-scene id="vr-scene" vr-mode-ui="enabled: false" background="color: #000000">
+    <a-scene id="vr-scene" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" background="color: #000000">
         <!-- Camera with look controls for device orientation -->
         <a-entity id="camera-rig" position="0 0 0">
             <a-camera
                 id="camera"
-                look-controls="magicWindowTrackingEnabled: true"
+                look-controls="magicWindowTrackingEnabled: true; touchEnabled: false"
                 wasd-controls="enabled: false"
                 position="0 0 0">
             </a-camera>
