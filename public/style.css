@@ -1,0 +1,128 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Fallback for non-iOS */
+#fallback {
+    width: 100%;
+    height: 100vh;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#fallback h1 {
+    font-size: 48px;
+    color: black;
+    font-weight: normal;
+}
+
+/* Main app */
+#app {
+    width: 100%;
+    height: 100vh;
+    background: #000000;
+    position: relative;
+}
+
+#starCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Controls */
+#controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    z-index: 10;
+}
+
+#permissionBtn {
+    display: block;
+    width: 200px;
+    margin: 0 auto 20px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#permissionBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#morseControls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+    align-items: center;
+}
+
+#morseInput {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 20px;
+    font-size: 14px;
+    width: 200px;
+}
+
+#morseInput::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#morseBtn, #stopMorseBtn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#morseBtn:hover, #stopMorseBtn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#stopMorseBtn {
+    background: rgba(255, 100, 100, 0.2);
+    border-color: rgba(255, 100, 100, 0.5);
+}
+
+#info {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+}
+
+.hidden {
+    display: none !important;
+}
