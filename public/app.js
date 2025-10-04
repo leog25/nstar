@@ -15,8 +15,6 @@ class NorthStarViewer {
         this.pitchValue = document.getElementById('pitch-value');
         this.rollValue = document.getElementById('roll-value');
         this.compassValue = document.getElementById('compass-value');
-        this.calibrateBtn = document.getElementById('calibrate-btn');
-        this.calibrationStatus = document.getElementById('calibration-status');
 
         this.hasPermission = false;
         this.isIOS = this.checkIOS();
@@ -27,10 +25,8 @@ class NorthStarViewer {
         this.trueHeading = null;
         this.magneticHeading = null;
 
-        // Calibration offset
-        this.calibrationOffset = null; // null means not calibrated
-        this.isCalibrating = false;
-        this.calibrationHeading = null;
+        // Track if we've positioned the star
+        this.starPositioned = false;
 
         this.init();
     }
@@ -67,7 +63,6 @@ class NorthStarViewer {
 
     updateNorthStarPosition() {
         // Calculate Polaris position based on user's latitude
-        // This sets the initial position, but will be updated based on compass
 
         if (!this.userLocation) {
             console.warn('No user location available, using default');
@@ -77,24 +72,29 @@ class NorthStarViewer {
         // Store elevation for later use
         this.polarisElevation = this.userLocation.latitude; // Elevation angle in degrees
 
-        // Don't position the star yet - wait for calibration
         console.log(`Polaris elevation for latitude ${this.userLocation.latitude}°: ${this.polarisElevation}°`);
 
         // Update display to show location info
         this.updateLocationDisplay();
+
+        // Position the star immediately if we have compass data
+        if (this.trueHeading !== null) {
+            this.positionPolarisWithCompass();
+        }
     }
 
-    // Position Polaris based on calibrated compass heading
+    // Position Polaris based on real-time compass heading
     positionPolarisWithCompass() {
-        if (this.calibrationOffset === null || this.polarisElevation === undefined) {
+        if (this.polarisElevation === undefined || this.trueHeading === null) {
             return;
         }
 
         const distance = 30; // Distance from origin in 3D space
 
-        // Calculate the azimuth where Polaris should appear
-        // This is based on the calibration offset from when user pointed north
-        const azimuth = this.calibrationOffset; // Degrees from current view
+        // Calculate where north is relative to current device orientation
+        // If device is facing north (heading = 0), star should be at azimuth 0 (straight ahead)
+        // If device is facing east (heading = 90), star should be at azimuth -90 (to the left)
+        const azimuth = -this.trueHeading; // Degrees from current view
 
         // Convert to radians
         const elevRad = (this.polarisElevation * Math.PI) / 180;
@@ -110,8 +110,9 @@ class NorthStarViewer {
 
         // Make star visible after positioning
         this.northStar.setAttribute('visible', 'true');
+        this.starPositioned = true;
 
-        console.log(`Polaris positioned at azimuth ${azimuth}°, elevation ${this.polarisElevation}°`);
+        console.log(`Polaris positioned: heading=${this.trueHeading}°, azimuth=${azimuth}°, elevation=${this.polarisElevation}°`);
     }
 
     setupPermissionRequest() {
@@ -137,9 +138,6 @@ class NorthStarViewer {
 
         // Show orientation overlay
         this.orientationOverlay.classList.add('active');
-
-        // Setup calibration button
-        this.setupCalibration();
 
         // Enable device orientation tracking
         if (window.DeviceOrientationEvent) {
@@ -207,8 +205,8 @@ class NorthStarViewer {
                 }
             }
 
-            // Dynamically adjust camera to align with true north
-            this.alignCameraToTrueNorth();
+            // Dynamically position Polaris based on compass
+            this.positionPolarisWithCompass();
         }
     }
 
@@ -276,7 +274,7 @@ class NorthStarViewer {
         const instructions = document.createElement('div');
         instructions.className = 'instructions';
         instructions.innerHTML = `
-            <p>Click "Calibrate Compass" and point toward North to position Polaris</p>
+            <p>The bright star is Polaris - positioned based on your location and compass</p>
         `;
         document.body.appendChild(instructions);
 
@@ -358,73 +356,6 @@ class NorthStarViewer {
         return declination;
     }
 
-    // Align camera rotation to account for true north
-    alignCameraToTrueNorth() {
-        // This method is no longer needed - we position the star instead
-    }
-
-    // Setup calibration button and functionality
-    setupCalibration() {
-        if (this.calibrateBtn) {
-            this.calibrateBtn.addEventListener('click', () => {
-                this.startCalibration();
-            });
-        }
-
-        // Initially hide the star until calibrated
-        this.northStar.setAttribute('visible', 'false');
-    }
-
-    // Start calibration process
-    startCalibration() {
-        this.isCalibrating = true;
-        this.calibrationStatus.textContent = 'Point device toward North and press again';
-        this.calibrationStatus.style.color = '#FFD700';
-        this.calibrateBtn.textContent = 'Confirm North';
-
-        // Change button behavior for confirmation
-        this.calibrateBtn.onclick = () => {
-            this.confirmCalibration();
-        };
-    }
-
-    // Confirm calibration when user is facing north
-    confirmCalibration() {
-        if (this.trueHeading !== null) {
-            // Store the current heading when user says they're facing north
-            this.calibrationHeading = this.trueHeading;
-
-            // Calculate where north is relative to the initial camera view
-            // If user is facing north (heading = 0), offset should be 0
-            // If user is facing east (heading = 90), north is 90 degrees to the left
-            this.calibrationOffset = -this.calibrationHeading;
-
-            // Position Polaris based on this calibration
-            this.positionPolarisWithCompass();
-
-            // Update status
-            this.calibrationStatus.textContent = 'Calibrated! Polaris positioned';
-            this.calibrationStatus.style.color = '#00FF88';
-
-            // Reset button
-            this.calibrateBtn.textContent = 'Recalibrate';
-            this.calibrateBtn.onclick = () => {
-                this.startCalibration();
-            };
-
-            this.isCalibrating = false;
-
-            // Hide success message after 3 seconds
-            setTimeout(() => {
-                this.calibrationStatus.textContent = '';
-            }, 3000);
-
-            console.log(`Calibration complete. User facing: ${this.calibrationHeading}°, North offset: ${this.calibrationOffset}°`);
-        } else {
-            this.calibrationStatus.textContent = 'No compass data available';
-            this.calibrationStatus.style.color = '#FF4444';
-        }
-    }
 
     // Update UI to show location information
     updateLocationDisplay() {
