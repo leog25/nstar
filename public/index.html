@@ -13,33 +13,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Permission Request Button (hidden after permission granted) -->
-    <div id="permission-overlay" class="overlay">
-        <button id="request-permission" class="permission-btn">
-            Enable Location & Motion Sensors
-        </button>
-        <p class="permission-info">This app needs access to your location and device motion sensors to accurately position the North Star based on your geographic location</p>
-    </div>
-
-    <!-- Orientation Values Overlay -->
-    <div id="orientation-overlay" class="orientation-overlay">
-        <div class="orientation-value">
-            <span class="label">Heading:</span>
-            <span id="heading-value">--°</span>
-        </div>
-        <div class="orientation-value">
-            <span class="label">Pitch:</span>
-            <span id="pitch-value">--°</span>
-        </div>
-        <div class="orientation-value">
-            <span class="label">Roll:</span>
-            <span id="roll-value">--°</span>
-        </div>
-        <div class="orientation-value">
-            <span class="label">Direction:</span>
-            <span id="compass-value">--</span>
-        </div>
-    </div>
 
     <!-- A-Frame VR Scene -->
     <a-scene id="vr-scene" vr-mode-ui="enabled: true" background="color: #000000">

@@ -3,18 +3,9 @@
 
 class NorthStarViewer {
     constructor() {
-        this.permissionOverlay = document.getElementById('permission-overlay');
-        this.requestButton = document.getElementById('request-permission');
         this.vrScene = document.getElementById('vr-scene');
         this.camera = document.getElementById('camera');
         this.northStar = document.getElementById('north-star');
-
-        // Orientation overlay elements
-        this.orientationOverlay = document.getElementById('orientation-overlay');
-        this.headingValue = document.getElementById('heading-value');
-        this.pitchValue = document.getElementById('pitch-value');
-        this.rollValue = document.getElementById('roll-value');
-        this.compassValue = document.getElementById('compass-value');
 
         this.hasPermission = false;
         this.isIOS = this.checkIOS();
@@ -43,12 +34,13 @@ class NorthStarViewer {
             this.updateNorthStarPosition();
         });
 
-        // Check if we need to request permissions
+        // Start tracking immediately
+        // For iOS 13+, we'll request permission when needed
         if (this.isIOS && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // iOS 13+ requires permission
-            this.setupPermissionRequest();
+            // Request permission directly for iOS 13+
+            this.requestIOSPermission();
         } else {
-            // Non-iOS or older iOS versions - try to start directly
+            // Non-iOS or older iOS versions - start directly
             this.startTracking();
         }
 
@@ -74,8 +66,7 @@ class NorthStarViewer {
 
         console.log(`Polaris elevation for latitude ${this.userLocation.latitude}°: ${this.polarisElevation}°`);
 
-        // Update display to show location info
-        this.updateLocationDisplay();
+        // Location info no longer displayed
 
         // Position the star immediately if we have compass data
         if (this.trueHeading !== null) {
@@ -121,29 +112,26 @@ class NorthStarViewer {
         console.log(`Polaris positioned once at launch: heading=${this.trueHeading}°, azimuth=${azimuth}°, elevation=${this.polarisElevation}°`);
     }
 
-    setupPermissionRequest() {
-        this.requestButton.addEventListener('click', async () => {
-            try {
-                const response = await DeviceOrientationEvent.requestPermission();
-                if (response === 'granted') {
-                    this.hasPermission = true;
-                    this.startTracking();
-                } else {
-                    alert('Motion sensor permission denied. The VR experience requires device orientation access.');
-                }
-            } catch (error) {
-                console.error('Error requesting device orientation permission:', error);
-                alert('Error requesting permissions. Please ensure you are using Safari on iOS.');
+    async requestIOSPermission() {
+        try {
+            const response = await DeviceOrientationEvent.requestPermission();
+            if (response === 'granted') {
+                this.hasPermission = true;
+                this.startTracking();
+            } else {
+                console.warn('Motion sensor permission denied');
+                // Start anyway but without orientation tracking
+                this.startTracking();
             }
-        });
+        } catch (error) {
+            console.error('Error requesting device orientation permission:', error);
+            // Start anyway
+            this.startTracking();
+        }
     }
 
     startTracking() {
-        // Hide permission overlay
-        this.permissionOverlay.style.display = 'none';
-
-        // Show orientation overlay
-        this.orientationOverlay.classList.add('active');
+        // No overlays to hide or show anymore
 
         // Enable device orientation tracking
         if (window.DeviceOrientationEvent) {
@@ -186,14 +174,8 @@ class NorthStarViewer {
             const pitch = Math.round(event.beta);
             const roll = Math.round(event.gamma);
 
-            // Update display with true heading
-            this.headingValue.textContent = `${Math.round(this.trueHeading)}° (true)`;
-            this.pitchValue.textContent = `${pitch}°`;
-            this.rollValue.textContent = `${roll}°`;
-
-            // Calculate compass direction based on true heading
+            // Compass direction is calculated but not displayed anymore
             const compass = this.getCompassDirection(this.trueHeading);
-            this.compassValue.textContent = compass;
 
             // Use webkitCompassHeading for iOS if available (more accurate)
             if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
@@ -202,10 +184,8 @@ class NorthStarViewer {
                 this.magneticHeading = event.webkitCompassHeading;
                 this.trueHeading = (this.magneticHeading + this.magneticDeclination + 360) % 360;
 
-                // Update display with more accurate iOS compass data
-                this.headingValue.textContent = `${Math.round(this.trueHeading)}° (true)`;
+                // More accurate iOS compass data (not displayed anymore)
                 const accurateCompass = this.getCompassDirection(this.trueHeading);
-                this.compassValue.textContent = accurateCompass;
 
                 // If we have accuracy data, show it
                 if (event.webkitCompassAccuracy !== undefined) {
@@ -240,11 +220,6 @@ class NorthStarViewer {
     }
 
     setupKeyboardControls() {
-        // Show overlay for desktop too
-        if (!this.isIOS) {
-            this.orientationOverlay.classList.add('active');
-        }
-
         // For desktop testing - arrow keys to look around
         document.addEventListener('keydown', (event) => {
             if (!this.isIOS) {
@@ -271,13 +246,6 @@ class NorthStarViewer {
                 }
 
                 camera.setAttribute('rotation', rotation);
-
-                // Update orientation values display for desktop
-                this.headingValue.textContent = `${Math.round(rotation.y % 360)}°`;
-                this.pitchValue.textContent = `${Math.round(rotation.x)}°`;
-                this.rollValue.textContent = `0°`;
-                const compass = this.getCompassDirection(rotation.y % 360);
-                this.compassValue.textContent = compass;
             }
         });
     }
@@ -370,35 +338,6 @@ class NorthStarViewer {
     }
 
 
-    // Update UI to show location information
-    updateLocationDisplay() {
-        if (this.userLocation) {
-            // Add location info to the display
-            const locationInfo = document.createElement('div');
-            locationInfo.className = 'location-info';
-            locationInfo.innerHTML = `
-                <div class="orientation-value">
-                    <span class="label">Latitude:</span>
-                    <span>${this.userLocation.latitude.toFixed(2)}°</span>
-                </div>
-                <div class="orientation-value">
-                    <span class="label">Longitude:</span>
-                    <span>${this.userLocation.longitude.toFixed(2)}°</span>
-                </div>
-                <div class="orientation-value">
-                    <span class="label">Declination:</span>
-                    <span>${this.magneticDeclination.toFixed(1)}°</span>
-                </div>
-            `;
-
-            // Check if location info already exists, replace if it does
-            const existingInfo = this.orientationOverlay.querySelector('.location-info');
-            if (existingInfo) {
-                existingInfo.remove();
-            }
-            this.orientationOverlay.appendChild(locationInfo);
-        }
-    }
 }
 
 // Initialize the app when DOM is ready
