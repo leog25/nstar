@@ -23,11 +23,10 @@ class NorthStarViewer {
     }
 
     init() {
-        // Request permissions BEFORE A-Frame initializes to prevent A-Frame's dialog
+        // For iOS 13+, we need a user gesture to request permission
         if (this.isIOS && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // For iOS 13+, request permission immediately
-            // This happens before A-Frame tries to request it
-            this.requestIOSPermission();
+            // Show a button that user must click to request permission
+            this.showPermissionButton();
         } else {
             // Non-iOS or older iOS versions - start directly
             this.startTracking();
@@ -46,6 +45,27 @@ class NorthStarViewer {
 
         // Add keyboard controls for desktop testing
         this.setupKeyboardControls();
+    }
+
+    showPermissionButton() {
+        // Create overlay with button
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.innerHTML = `
+            <button class="permission-btn" id="allow-motion-btn">
+                N*
+            </button>
+            <p class="permission-info">
+                This app uses your device's motion sensors
+            </p>
+        `;
+        document.body.appendChild(overlay);
+
+        // Add click handler
+        document.getElementById('allow-motion-btn').addEventListener('click', () => {
+            this.requestIOSPermission();
+            overlay.remove();
+        });
     }
 
     checkIOS() {
