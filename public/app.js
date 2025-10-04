@@ -92,9 +92,13 @@ class NorthStarViewer {
         const distance = 30; // Distance from origin in 3D space
 
         // Calculate where north is relative to current device orientation
-        // If device is facing north (heading = 0), star should be at azimuth 0 (straight ahead)
-        // If device is facing east (heading = 90), star should be at azimuth -90 (to the left)
-        const azimuth = -this.trueHeading; // Degrees from current view
+        // Compass heading: 0° = North, 90° = East, 180° = South, 270° = West
+        // We need to place the star so it appears in the north direction
+        // If facing North (0°), star should be straight ahead (azimuth = 0°)
+        // If facing East (90°), star should be to the left (azimuth = -90°)
+        // If facing South (180°), star should be behind (azimuth = 180°)
+        // If facing West (270°), star should be to the right (azimuth = 90°)
+        const azimuth = -this.trueHeading; // Negate to get correct positioning
 
         // Convert to radians
         const elevRad = (this.polarisElevation * Math.PI) / 180;
@@ -102,7 +106,8 @@ class NorthStarViewer {
 
         // Calculate 3D position
         // A-Frame uses Y-up coordinate system, -Z is forward
-        const x = distance * Math.cos(elevRad) * Math.sin(azimRad);
+        // Need to negate X to fix East/West orientation
+        const x = -distance * Math.cos(elevRad) * Math.sin(azimRad);
         const y = distance * Math.sin(elevRad);
         const z = -distance * Math.cos(elevRad) * Math.cos(azimRad);
 
