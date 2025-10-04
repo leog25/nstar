@@ -83,10 +83,10 @@ class NorthStarViewer {
         }
     }
 
-    // Position Polaris based on real-time compass heading
+    // Position Polaris based on initial compass heading (only called once)
     positionPolarisWithCompass() {
-        if (this.polarisElevation === undefined || this.trueHeading === null) {
-            return;
+        if (this.polarisElevation === undefined || this.trueHeading === null || this.starPositioned) {
+            return; // Don't reposition if already positioned
         }
 
         const distance = 30; // Distance from origin in 3D space
@@ -112,7 +112,7 @@ class NorthStarViewer {
         this.northStar.setAttribute('visible', 'true');
         this.starPositioned = true;
 
-        console.log(`Polaris positioned: heading=${this.trueHeading}°, azimuth=${azimuth}°, elevation=${this.polarisElevation}°`);
+        console.log(`Polaris positioned once at launch: heading=${this.trueHeading}°, azimuth=${azimuth}°, elevation=${this.polarisElevation}°`);
     }
 
     setupPermissionRequest() {
@@ -205,8 +205,10 @@ class NorthStarViewer {
                 }
             }
 
-            // Dynamically position Polaris based on compass
-            this.positionPolarisWithCompass();
+            // Position Polaris only once (first compass reading)
+            if (!this.starPositioned) {
+                this.positionPolarisWithCompass();
+            }
         }
     }
 
