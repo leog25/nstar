@@ -26,6 +26,11 @@ class NorthStarApp {
         // Polaris is at approximately 89.26° declination (nearly at celestial north pole)
         this.polarisDeclinaton = 89.26;
 
+        // Device location
+        this.latitude = 40; // Default to 40°N (will be updated by geolocation)
+        this.longitude = -74; // Default longitude
+        this.locationAcquired = false;
+
         // Star properties
         this.starBrightness = 1.0;
         this.isMorseBlinking = false;
@@ -52,6 +57,9 @@ class NorthStarApp {
         // Set up controls
         this.setupControls();
 
+        // Get device location
+        this.getLocation();
+
         // Request permission for iOS 13+
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
             document.getElementById('permissionBtn').classList.remove('hidden');
@@ -76,6 +84,37 @@ class NorthStarApp {
     resizeCanvas() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
+    }
+
+    getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    this.latitude = position.coords.latitude;
+                    this.longitude = position.coords.longitude;
+                    this.locationAcquired = true;
+                    console.log(`Location acquired: ${this.latitude.toFixed(2)}°N, ${this.longitude.toFixed(2)}°E`);
+
+                    // Update info display
+                    const infoDiv = document.getElementById('info');
+                    const locationSpan = document.createElement('span');
+                    locationSpan.id = 'location';
+                    locationSpan.textContent = `Lat: ${this.latitude.toFixed(2)}°`;
+                    infoDiv.appendChild(locationSpan);
+                },
+                (error) => {
+                    console.warn('Geolocation error:', error.message);
+                    console.log('Using default latitude 40°N');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            console.log('Geolocation not supported, using default latitude');
+        }
     }
 
     async requestOrientationPermission() {
@@ -172,28 +211,29 @@ class NorthStarApp {
     }
 
     calculateStarPosition() {
-        // Calculate North Star position based on device orientation
+        // Calculate North Star position based on device orientation and location
 
-        // Get the compass bearing to north (alpha is compass heading)
-        const compassToNorth = 360 - this.smoothedOrientation.alpha;
+        // Polaris elevation angle equals observer's latitude in Northern Hemisphere
+        // In Southern Hemisphere, Polaris is below the horizon
+        const polarisElevation = Math.abs(this.latitude); // degrees above horizon
 
-        // Calculate azimuth angle to Polaris (should be at north, azimuth = 0)
-        const azimuth = compassToNorth * Math.PI / 180;
-
-        // Elevation angle - Polaris is at approximately your latitude degrees above horizon
-        // For this demo, we'll put it at 40 degrees elevation (typical for mid-latitudes)
-        // In a real app, you'd use geolocation to get the actual latitude
-        const polarisElevation = 40; // degrees above horizon
-
-        // Calculate how much the phone is tilted
+        // Get device orientation
+        const deviceHeading = this.smoothedOrientation.alpha; // Compass heading (0-360)
         const phoneTilt = this.smoothedOrientation.beta; // Front-to-back tilt
         const phoneRoll = this.smoothedOrientation.gamma; // Left-to-right roll
 
+        // Calculate bearing to north
+        // alpha=0 means the device is pointing north
+        // We need to calculate how many degrees we are off from north
+        const bearingToNorth = (360 - deviceHeading) % 360;
+
         // Calculate the apparent position on screen
-        // When phone is level (beta=0), looking straight ahead
+        // When phone is level (beta=0), looking at horizon
         // When tilted up (negative beta), see higher in sky
         // When tilted down (positive beta), see lower in sky
 
+        // For elevation: star is at latitude degrees above horizon
+        // Phone tilt determines what elevation we're looking at
         const elevationDiff = polarisElevation - phoneTilt;
 
         // Convert to screen coordinates
@@ -209,16 +249,31 @@ class NorthStarApp {
         const pixelsPerDegreeH = this.canvas.width / fovHorizontal;
         const pixelsPerDegreeV = this.canvas.height / fovVertical;
 
-        // X position based on compass bearing and phone roll
-        const xOffset = Math.sin(azimuth) * pixelsPerDegreeH * 10 - phoneRoll * pixelsPerDegreeH;
+        // X position based on compass bearing to north
+        // When bearingToNorth is 0, star is in center horizontally
+        // Positive bearing = star to the right, negative = star to the left
+        let angleDiff = bearingToNorth;
+
+        // Normalize angle difference to -180 to 180 range
+        if (angleDiff > 180) {
+            angleDiff -= 360;
+        }
+
+        // Convert angle to screen position
+        const xOffset = angleDiff * pixelsPerDegreeH;
 
         // Y position based on elevation difference
         const yOffset = -elevationDiff * pixelsPerDegreeV;
 
+        // Check if star is visible (within reasonable bounds)
+        const visible = Math.abs(angleDiff) < fovHorizontal &&
+                       elevationDiff > -fovVertical/2 &&
+                       elevationDiff < fovVertical/2;
+
         return {
             x: centerX + xOffset,
             y: centerY + yOffset,
-            visible: Math.abs(xOffset) < this.canvas.width && Math.abs(yOffset) < this.canvas.height
+            visible: visible
         };
     }
 
