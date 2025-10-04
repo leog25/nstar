@@ -232,10 +232,10 @@ class NorthStarApp {
 
         // For horizontal: use gamma (left-right tilt) similar to vertical tracking
         // gamma=0 means device is level horizontally (star in center)
-        // Positive gamma = device tilted right (star moves left)
-        // Negative gamma = device tilted left (star moves right)
+        // Positive gamma = device tilted right (star moves right)
+        // Negative gamma = device tilted left (star moves left)
         // Assume star is at 0° horizontal when device is level
-        const horizontalDiff = -phoneRoll; // Negative because tilting right should move star left
+        const horizontalDiff = phoneRoll; // Direct mapping: tilt right = star right, tilt left = star left
 
         // Convert to screen coordinates
         // Center of screen is straight ahead
